@@ -1,12 +1,10 @@
 import asyncio
 import aiohttp
 import time
-from api_secrets import tiingo_base_url, tiingo_api_key, alpaca_api_key_id, alpaca_api_secret
+from resources.api_secrets import tiingo_base_url, tiingo_api_key, alpaca_api_key_id, alpaca_api_secret
 from alpaca.data.historical.stock import StockHistoricalDataClient
 from resources.ticker_universe_condensed import condensed_secmaster_ticker_list
-from logger_setup import get_logger
-import requests as r
-
+from resources.logger_setup import get_logger
 
 alpaca_headers = {
     "APCA-API-KEY-ID": alpaca_api_key_id,

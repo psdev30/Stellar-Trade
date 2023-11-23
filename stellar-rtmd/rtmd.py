@@ -1,12 +1,9 @@
 import asyncio
 import websockets
 import simplejson as json
-import time
-from api_secrets import tiingo_websocket_feed, tiingo_base_url, tiingo_api_key
-from alpaca.data.historical.stock import StockHistoricalDataClient
-from alpaca.data.requests import StockSnapshotRequest
+from resources.api_secrets import tiingo_api_key
 from resources.ticker_universe_condensed import condensed_secmaster_ticker_list
-from logger_setup import get_logger
+from resources.logger_setup import get_logger
 
 logger = get_logger()
 

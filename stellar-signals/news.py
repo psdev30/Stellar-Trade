@@ -1,4 +1,4 @@
-from api_secrets import alpaca_api_key_id, alpaca_api_secret
+from resources.api_secrets import alpaca_api_key_id, alpaca_api_secret
 from alpaca.data.historical.news import NewsClient
 from alpaca.data.requests import NewsRequest
 

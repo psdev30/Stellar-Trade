@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-import sys
-from random import choice
-from argparse import ArgumentParser, FileType
 from configparser import ConfigParser
 from confluent_kafka import Producer
-from logger_setup import logger
+from resources.logger_setup import logger
 
 
 class KafkaProducer():

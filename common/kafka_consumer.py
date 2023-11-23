@@ -2,7 +2,7 @@
 
 from configparser import ConfigParser
 from confluent_kafka import Consumer
-from logger_setup import logger
+from resources.logger_setup import logger
 
 
 class KafkaConsumer:
