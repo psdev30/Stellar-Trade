@@ -1,7 +1,8 @@
 import asyncio
-import aiohttp
+import websockets
+import simplejson as json
 import time
-from api_secrets import alpaca_data_base_url, alpaca_api_key_id, alpaca_api_secret
+from api_secrets import tiingo_websocket_feed, tiingo_base_url, tiingo_api_key
 from alpaca.data.historical.stock import StockHistoricalDataClient
 from alpaca.data.requests import StockSnapshotRequest
 from resources.ticker_universe_condensed import condensed_secmaster_ticker_list
@@ -10,44 +11,26 @@ from logger_setup import get_logger
 logger = get_logger()
 
 headers = {
-    "APCA-API-KEY-ID": alpaca_api_key_id,
-    "APCA-API-SECRET-KEY": alpaca_api_secret,
+    'api-key': tiingo_api_key,
+    'session': 'True'
 }
 
-stock_data_client = StockHistoricalDataClient(alpaca_api_key_id, alpaca_api_secret, raw_data=True)
+async def subscribe_to_tiingo_feed(uri, subscribe_payload):
+    async with websockets.connect(uri) as socket:
+        # Send the subscription payload
+        await socket.send(json.dumps(subscribe_payload))
 
-@logger.catch
-def get_stock_snapshot(symbol):
-    while True:
-        try:
-            res = stock_data_client.get_stock_snapshot(request_params=StockSnapshotRequest(symbol_or_symbols=symbol))
-            return res  # res is a plain Python dict
-        except Exception as e:
-            print(e)
+        # Continuously receive and process messages
+        while True:
+            message = await socket.recv()
+            process_tiingo_message(message)
 
-async def fetch(s, symbol):
-    quote_endpoint = "/v2/stocks/{}/quotes".format(symbol)
-    url = alpaca_data_base_url + quote_endpoint
-    async with s.get(url, headers=headers) as r:
-        if r.status != 200:
-            r.raise_for_status()
-        return await r.text()
+def process_tiingo_message(message):
+    # Define your logic to process Tiingo messages here
+    print(f"Received Tiingo message: {message}")
 
-async def fetch_all(s, symbols):
-    tasks = []
-    for symbol in symbols:
-        task = asyncio.create_task(fetch(s, symbol))
-        tasks.append(task)
-    res = await asyncio.gather(*tasks)
-    return res
 
-@logger.catch
-async def main():
-    async with aiohttp.ClientSession() as session:
-        results = await fetch_all(session, condensed_secmaster_ticker_list)
-        print(results)
+tiingo_websocket_feed = "wss://api.tiingo.com/iex" 
+subscribe_payload = {"eventName": "subscribe", "eventData": {"thresholdLevel": 5, "tickers": condensed_secmaster_ticker_list}}
 
-start_time = time.time()
-asyncio.run(main())
-end_time = time.time()
-print(end_time - start_time)
+asyncio.run(subscribe_to_tiingo_feed(tiingo_websocket_feed, subscribe_payload))
