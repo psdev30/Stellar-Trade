@@ -161,4 +161,4 @@ cython_debug/
 
 node_modules
 stellar
-secrets
+api_secrets
