@@ -1,5 +1,4 @@
 import json
-import time
 from resources.logger_setup import get_logger
 from resources.api_secrets import *
 from resources.ticker_universe_condensed import condensed_secmaster_ticker_list
@@ -7,25 +6,27 @@ from resources.ticker_universe import secmaster_ticker_list
 from datetime import datetime
 import pandas as pd
 import requests as r
-import redis
-
-logger = get_logger()
 
 class Indicators():
     def __init__(self) -> None:
+        self.logger = get_logger()
         self.headers = {'Content-Type': 'application/json'}
         self.curr_date = datetime.now().strftime("%Y-%m-%d")
 
     def macd(self, ticker, short_window=12, long_window=26, signal_window=9):
         start_date = self._get_prev_date(35)
         close_prices = r.get(tiingo_base_url + f'/tiingo/daily/{ticker}/prices?startDate={start_date}&endDate={self.curr_date} \
-            &format=json&resampleFreq=daily&sort=date&columns=adjClose&token={tiingo_api_key}', headers=self.headers).json()
-        data = pd.DataFrame(close_prices)
+            &format=json&resampleFreq=daily&sort=date \
+            &columns=adjClose&token={tiingo_api_key}', headers=self.headers).json()
+            
+        eod_data = pd.DataFrame(close_prices)
+        if 'adjClose' not in eod_data.columns.tolist():
+            return f'Stop here: {ticker}'
         # Calculate Short-term EMA
-        short_ema = data['adjClose'].ewm(span=short_window, adjust=False).mean()
+        short_ema = eod_data['adjClose'].ewm(span=short_window, adjust=False).mean()
 
         # Calculate Long-term EMA
-        long_ema = data['adjClose'].ewm(span=long_window, adjust=False).mean()
+        long_ema = eod_data['adjClose'].ewm(span=long_window, adjust=False).mean()
 
         # Calculate MACD Line
         macd_line = short_ema - long_ema
@@ -54,7 +55,6 @@ class Indicators():
         else:
             return False
 
-
     def _get_prev_date(self, days_back):
         range = pd.bdate_range(end=self.curr_date, periods=days_back)
         # Get the desired date
@@ -67,5 +67,4 @@ class Indicators():
 
 indicators = Indicators()
 res = indicators.macd('AAPL')
-
 print(res)
