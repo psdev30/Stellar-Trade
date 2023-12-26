@@ -162,3 +162,5 @@ cython_debug/
 node_modules
 stellar
 api_secrets
+stellar-trade-1.pem
+.idea
