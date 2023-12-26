@@ -6,10 +6,9 @@ from resources.logger_setup import get_logger
 from resources.api_secrets import *
 from resources.ticker_universe_condensed import condensed_secmaster_ticker_list
 from resources.ticker_universe import secmaster_ticker_list
-import redis
+from stellar_signals.indicators import *
+import boto3
 
-# Connect to the Redis server
-# redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 logger = get_logger()
 
@@ -18,9 +17,9 @@ async def fetch_market_data(ticker):
     try:
         async with httpx.AsyncClient() as client:
             # Asynchronously get market data for a ticker
-            response = await client.get('https://jsonplaceholder.typicode.com/todos')
-            # response = await client.get(tiingo_base_url + f'/iex/?tickers={ticker}&token={tiingo_api_key}')
-            # response.raise_for_status()
+            # response = await client.get('https://jsonplaceholder.typicode.com/todos')
+            response = await client.get(tiingo_base_url + f'/iex/?tickers={ticker}&token={tiingo_api_key}')
+            response.raise_for_status()
             market_data = response.json()
 
             return ticker, market_data
@@ -31,17 +30,27 @@ async def fetch_market_data(ticker):
         return ticker, None
 
 def generate_signal(ticker_data):
-    ticker, market_data = ticker_data
+    ticker, market_data = ticker_data[0], ticker_data[1][0]
+    indicators = Indicators()
     if market_data:
-        logger.info(f"Generating signal for {ticker}: ")
+        logger.info(f"Generating signal for {ticker}")
+        return indicators.macd(ticker=ticker)
     else:
-        logger.warning(f"Market data for {ticker} is None. Signal generation skipped.")
+        pass
+        # logger.warning(f"Market data for {ticker} is None. Signal generation skipped.")
     
 
 def generate_signal_parallel(ticker_data):
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        # Use ProcessPoolExecutor for parallel execution of signal generation
-        executor.map(generate_signal, ticker_data)
+        future_to_ticker = {executor.submit(generate_signal, ticker): ticker[1] for ticker in ticker_data}
+        for future in concurrent.futures.as_completed(future_to_ticker):
+            ticker = future_to_ticker[future]
+            try:
+                result = future.result()
+                print(result)
+                print(f"Signal generated for {ticker}: {result}")
+            except Exception as e:
+                print(f"Error generating signal for {ticker}: {e}")
         # add code to only call it if there isn't an existing process later
 
 async def main():
