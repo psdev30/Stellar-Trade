@@ -1,44 +1,62 @@
-from decimal import Decimal
+import asyncio
+import httpx
 from datetime import datetime
-import os
+import json
 import pandas as pd
-import requests as r
-from ticker_universe import secmaster_ticker_list
+from resources.api_secrets import *
+from resources.ticker_universe import secmaster_ticker_list
 import boto3
 
-db = boto3.resource('dynamodb')
-table = db.Table('stellar-indicator-data')
+s3 = boto3.client('s3')
+bucket = 'stellar-indicators'
 
-def lambda_handler(event, context):
+
+def lambda_handler(event=None, context=None):
+    asyncio.run(handler())
+
+
+async def handler():
     start_date = _get_prev_date(365)
-    for ticker in secmaster_ticker_list:
-        df = _get_data(ticker, start_date)
-        upload_indicator_data(ticker, df)
+    tasks = [_get_data(ticker, start_date)
+             for ticker in secmaster_ticker_list]
+    results = await asyncio.gather(*tasks)
+    for result in results:
+        upload_indicator_data(result)
 
-    return 'All indicator data uploaded to AWS DynamoDB'
+    return 'All indicator data uploaded to S3 bucket'
 
 
-def upload_indicator_data(ticker, df):
-    ema_res = ema(df)[-1]
-    rsi_res = rsi(df)
-    item = {'ticker': ticker, 'ema': Decimal(str(ema_res)), 'rsi': Decimal(str(rsi_res))}
-    table.put_item(
-        Item=item
+def upload_indicator_data(result):
+    ticker, df = result
+    ema_res = ema(ticker, df)
+    rsi_res = rsi(ticker, df)
+    data = {'ema': ema_res, 'rsi': rsi_res}
+    s3.put_object(
+        Bucket=bucket,
+        key=ticker,
+        Body=json.dumps(data),
+        ContentType='application/json',
+        ACL='public-read'
     )
-    print(f"Daily indicator data uploaded to DynamoDB table: {table}")
+    print(f"Daily indicator data uploaded to S3 bucket {bucket}")
 
 
-def _get_data(ticker, start_date):
-    url = f'{os.environ.get("tiingo_base_url")}/tiingo/daily/{ticker}/prices?startDate={start_date}&endDate={datetime.now().strftime("%Y-%m-%d")} \
-        &format=json&resampleFreq=daily&sort=date&token={os.environ.get("tiingo_api_key")}'
-    response = r.get(
-        url, headers={'Content-Type': 'application/json'}
-    )
-    if response.status_code == 200:
-        return pd.DataFrame(response.json())
-    else:
-        raise ValueError(
-            f"Tiingo API request failed with status code: {response.status_code}")
+async def _get_data(ticker, start_date):
+    try:
+        async with httpx.AsyncClient() as client:
+            url = f'{tiingo_base_url}/tiingo/daily/{ticker}/prices?startDate={start_date}&endDate={datetime.now().strftime("%Y-%m-%d")} \
+                &format=json&resampleFreq=daily&sort=date&token={tiingo_api_key}'
+            response = await client.get(
+                url, headers={'Content-Type': 'application/json'}
+            )
+            if response.status_code == 200:
+                return ticker, pd.DataFrame(response.json())
+            else:
+                raise ValueError(
+                    f"Tiingo API request failed with status code: {response.status_code}")
+    except Exception as e:
+        print('Exception: ', e)
+        return ticker, None
 
 
 def _get_prev_date(days_back):
@@ -112,3 +130,6 @@ def rsi(df, window=14):
     rsi = ma_up / ma_down
     rsi = 100 - (100/(1 + rsi))
     return rsi.iloc[-1]
+
+
+lambda_handler()

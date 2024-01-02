@@ -7,7 +7,6 @@ from resources.api_secrets import *
 from resources.ticker_universe_condensed import condensed_secmaster_ticker_list
 from resources.ticker_universe import secmaster_ticker_list
 from stellar_signals.indicators import *
-import boto3
 
 
 logger = get_logger()
@@ -17,7 +16,6 @@ async def fetch_market_data(ticker):
     try:
         async with httpx.AsyncClient() as client:
             # Asynchronously get market data for a ticker
-            # response = await client.get('https://jsonplaceholder.typicode.com/todos')
             response = await client.get(tiingo_base_url + f'/iex/?tickers={ticker}&token={tiingo_api_key}')
             response.raise_for_status()
             market_data = response.json()
@@ -61,9 +59,9 @@ async def main():
     # Use asyncio.gather to run fetch_market_data tasks concurrently
     tasks = [fetch_market_data(ticker) for ticker in tickers]
     results = await asyncio.gather(*tasks)
-
+    print(results[0])
     # Use ProcessPoolExecutor for parallel signal generation
-    generate_signal_parallel(results)
+    # generate_signal_parallel(results)
 
 if __name__ == "__main__":
     start = time.time()
