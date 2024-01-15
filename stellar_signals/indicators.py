@@ -1,3 +1,4 @@
+from resources.logger_setup import get_logger
 from resources.api_secrets import *
 from datetime import datetime
 import pandas as pd
@@ -5,7 +6,7 @@ import requests as r
 
 class Indicators():
     def __init__(self) -> None:
-        # self.logger = get_logger()
+        self.logger = get_logger()
         self.headers = {'Content-Type': 'application/json'}
         self.curr_date = datetime.now().strftime("%Y-%m-%d")
 
