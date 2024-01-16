@@ -9,7 +9,10 @@ indicator_table = db.Table('stellar-indicator-data')
 ref_data_table = db.Table('stellar-reference-data')
 
 redis = redis.StrictRedis(
-    host=os.environ.get('elasticache_host'), port=int(os.environ.get('elasticache_port')), decode_responses=True)
+    host=os.environ.get('elasticache_host'), 
+    port=int(os.environ.get('elasticache_port')), 
+    decode_responses=True
+)
 
 
 def lambda_handler(event, context):
