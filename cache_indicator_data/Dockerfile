@@ -1,7 +1,6 @@
 FROM public.ecr.aws/lambda/python:3.9
 
 COPY cache_indicator_data.py ${LAMBDA_TASK_ROOT}/
-COPY ticker_universe.py ${LAMBDA_TASK_ROOT}/
 
 # Install dependencies
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
