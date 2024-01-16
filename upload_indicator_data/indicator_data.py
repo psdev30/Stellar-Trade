@@ -16,6 +16,7 @@ sns = boto3.client('sns')
 sns_topic_arn = 'arn:aws:sns:us-east-2:921025392800:update-indicator-cache'
 sns_message = "Triggering cache indicator data Lambda function"
 
+
 def lambda_handler(event, context):
     try:
         key = {'reference_data_type': 'secmaster_full'}
@@ -35,7 +36,6 @@ def lambda_handler(event, context):
     return "Daily indicator data uploaded to DynamoDB table & triggered caching Lambda function"
 
 
-
 def upload_indicator_data(ticker):
     start_date = _get_prev_date(365)
     df = _get_data(ticker, start_date)
@@ -45,6 +45,7 @@ def upload_indicator_data(ticker):
     indicator_table.put_item(
        Item=item
     )
+
 
 def _get_data(ticker, start_date):
     try:
