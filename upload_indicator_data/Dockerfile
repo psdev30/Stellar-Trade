@@ -1,7 +1,6 @@
 FROM public.ecr.aws/lambda/python:3.9
 
 COPY indicator_data.py ${LAMBDA_TASK_ROOT}/
-COPY ticker_universe.py ${LAMBDA_TASK_ROOT}/
 
 CMD ["indicator_data.lambda_handler"]
 

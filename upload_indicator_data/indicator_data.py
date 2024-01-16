@@ -1,10 +1,10 @@
+import os
 import json
 import boto3
 import pandas as pd
 import requests as r
 from decimal import Decimal
 from datetime import datetime
-from resources.api_secrets import *
 
 
 db = boto3.resource('dynamodb')
@@ -49,8 +49,8 @@ def upload_indicator_data(ticker):
 
 def _get_data(ticker, start_date):
     try:
-        url = f'{tiingo_base_url}/tiingo/daily/{ticker}/prices?startDate={start_date}&endDate={datetime.now().strftime("%Y-%m-%d")} \
-            &format=json&resampleFreq=daily&sort=date&token={tiingo_api_key}'
+        url = f'{os.environ.get("tiingo_base_url")}/tiingo/daily/{ticker}/prices?startDate={start_date}&endDate={datetime.now().strftime("%Y-%m-%d")} \
+            &format=json&resampleFreq=daily&sort=date&token={os.environ.get("tiingo_api_key")}'
         response = r.get(url, headers={'Content-Type': 'application/json'})
         if response.status_code == 200:
             return pd.DataFrame(response.json())
