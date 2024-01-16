@@ -16,12 +16,15 @@ sns = boto3.client('sns')
 sns_topic_arn = 'arn:aws:sns:us-east-2:921025392800:update-indicator-cache'
 sns_message = "Triggering cache indicator data Lambda function"
 
-def lambda_handler(event=None, context=None):
-    key = {'reference_data_type': 'secmaster_full'}
-    response = ref_data_table.get_item(Key=key)
-    tickers = response['Item']['ListAttribute']
-    for ticker in tickers:
-        upload_indicator_data(ticker)
+def lambda_handler(event, context):
+    try:
+        key = {'reference_data_type': 'secmaster_full'}
+        response = ref_data_table.get_item(Key=key)
+        tickers = response['Item']['ListAttribute']
+        for ticker in tickers:
+            upload_indicator_data(ticker)
+    except Exception as e:
+        return f'Exception here: {e}'
 
     response = sns.publish(
         TopicArn=sns_topic_arn,
@@ -129,5 +132,3 @@ def rsi(df, window=14):
     rsi = ma_up / ma_down
     rsi = 100 - (100/(1 + rsi))
     return rsi.iloc[-1]
-
-lambda_handler()
