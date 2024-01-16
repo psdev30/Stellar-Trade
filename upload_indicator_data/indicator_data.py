@@ -13,7 +13,7 @@ ref_data_table = db.Table('stellar-reference-data')
 
 
 sns = boto3.client('sns')
-sns_topic_arn = 'arn:aws:sns:us-east-2:921025392800:update-indicator-cache:ce3d0da8-033f-4b22-9926-1eb255cfd0aa'
+sns_topic_arn = 'arn:aws:sns:us-east-2:921025392800:update-indicator-cache'
 sns_message = "Triggering cache indicator data Lambda function"
 
 
