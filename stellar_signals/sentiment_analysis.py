@@ -8,8 +8,6 @@ import requests as r
 import pandas as pd
 import numpy as np
 import string
-import boto3
-import json
 import nltk
 import ssl
 import re
@@ -57,7 +55,6 @@ class SentimentAnalysis:
         df['headline'] = self.pad_inner_array(df)
         df_numpy = np.vstack( df['headline'] )
         return df_numpy
-
     
     def make_lowercase(self, df):
         df['headline'] = df['headline'].str.lower()
@@ -69,7 +66,6 @@ class SentimentAnalysis:
         df['headline'] = df['headline'].str.translate(translator)
         return df
 
-    # Remove special characters
     def remove_special_characters(self, sentence):
         # Use regex to remove non-alphanumeric characters
         cleaned_sentence = re.sub(r'[^A-Za-z0-9 ]+', '', sentence)
@@ -117,3 +113,5 @@ class SentimentAnalysis:
         return self.predict(df)
     
     
+analysis = SentimentAnalysis()
+analysis.analyze_sentiment('NVDA')

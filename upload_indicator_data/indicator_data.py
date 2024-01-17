@@ -5,7 +5,9 @@ import pandas as pd
 import requests as r
 from decimal import Decimal
 from datetime import datetime
+from sentiment_analysis import SentimentAnalysis
 
+sentiment_analysis = SentimentAnalysis()
 
 db = boto3.resource('dynamodb')
 indicator_table = db.Table('stellar-indicator-data')
@@ -41,7 +43,8 @@ def upload_indicator_data(ticker):
     df = _get_data(ticker, start_date)
     ema_res = ema(df)[-1]
     rsi_res = rsi(df)
-    item = {'ticker': ticker, 'ema': Decimal(str(ema_res)), 'rsi': Decimal(str(rsi_res))}
+    news = sentiment_analysis.analyze_sentiment(ticker=ticker)
+    item = {'ticker': ticker, 'ema': Decimal(str(ema_res)), 'rsi': Decimal(str(rsi_res)), 'news': Decimal(str(news))}
     indicator_table.put_item(
        Item=item
     )
