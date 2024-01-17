@@ -14,7 +14,6 @@ import nltk
 import ssl
 import re
 
-
 class SentimentAnalysis:
     def __init__(self) -> None:
         self.logger = get_logger()
@@ -107,30 +106,14 @@ class SentimentAnalysis:
     def predict(self, df_numpy):
         model = tf.keras.saving.load_model("stellar_signals/finance_sentiment.keras")
         predictions = np.argmax( model.predict(df_numpy), axis=1 )
-        print(predictions)
         return np.mean(predictions)
-
-if __name__ == '__main__':
-    analysis = SentimentAnalysis()
-    analysis.setup()
-    analysis.get_news(ticker='GWW')
-    df = pd.DataFrame(analysis.headlines['GWW'], columns=['headline'])
-    df = df.drop_duplicates(subset=['headline'])
-    df = analysis.preprocess(df)
-    mean = analysis.predict(df)
-    print(mean)
-    # for ticker in secmaster_ticker_list:
-        # analysis.get_news(ticker=ticker)
-        # df = pd.DataFrame(analysis.headlines[ticker], columns=['headline'])
-        # df = df.drop_duplicates(subset=['headline'])
-        # df = analysis.preprocess(df)
-        # mean = analysis.predict(df)
-        # print(ticker, mean)
+        
+    def analyze_sentiment(self, ticker):
+        self.setup()
+        self.get_news(ticker=ticker)
+        df = pd.DataFrame(self.headlines[ticker], columns=['headline'])
+        df = df.drop_duplicates(subset=['headline'])
+        df = self.preprocess(df)
+        return self.predict(df)
     
-    # analysis.get_news(ticker="TSLA")
-    # df = pd.DataFrame(analysis.headlines["TSLA"], columns=['headline'])
-    # df = df.drop_duplicates(subset=['headline'])
-    # print(list(df['headline'])[:13])
-    # df = analysis.preprocess(df)
-    # mean = analysis.predict(df)
-    # print("TSLA", mean)
+    
