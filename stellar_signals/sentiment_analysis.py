@@ -1,7 +1,4 @@
 import collections
-from resources.ticker_universe import secmaster_ticker_list
-from resources.logger_setup import get_logger
-from resources.api_secrets import *
 from datetime import datetime
 import tensorflow as tf
 import requests as r
@@ -14,11 +11,8 @@ import re
 
 class SentimentAnalysis:
     def __init__(self) -> None:
-        self.logger = get_logger()
         self.headers = {'Content-Type': 'application/json'}
         self.curr_date = datetime.now().strftime("%Y-%m-%d")
-        self.tiingo_base_url = tiingo_base_url
-        self.tiingo_api_key = tiingo_api_key
         self.headlines = collections.defaultdict(list)
 
     def get_news(self, ticker):

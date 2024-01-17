@@ -1,17 +1,15 @@
-import collections
-import os
-from resources.api_secrets import *
 from datetime import datetime
 import tensorflow as tf
 import requests as r
 import pandas as pd
 import numpy as np
+import collections
 import string
-import boto3
-import json
 import nltk
 import ssl
 import re
+import os
+
 
 class SentimentAnalysis:
     def __init__(self) -> None:
